@@ -1,19 +1,19 @@
 const { check } = require("express-validator");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
-const User = require("../../models/User");
+const Driver = require("../../models/Driver");
 
 const signupValidator = [
   check('name')
-    .notEmpty().withMessage('Username is required')
-    .isLength({ min: 3, max: 20 }).withMessage('Username must be between 3 and 20 characters'),
+    .notEmpty().withMessage('Driver name is required')
+    .isLength({ min: 3, max: 20 }).withMessage('Driver name must be between 3 and 20 characters'),
 
   check('email')
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please enter a valid email address')
     .custom(async (value) => {
       // Check if email already exists in the database
-      const user = await User.findOne({ email: value })
-      if (user)
+      const driver = await Driver.findOne({ email: value })
+      if (driver)
         throw new Error('Email already exists');
 
       return true
@@ -39,8 +39,8 @@ const signupValidator = [
     .withMessage('Please enter a valid mobile phone number in Egyptian format')
     .custom(async (value) => {
       // Check if phone number already exists in the database
-      const user = await User.findOne({ phone: value })
-      if (user)
+      const driver = await Driver.findOne({ phone: value })
+      if (driver)
         throw new Error('Phone number already exists');
 
       return true

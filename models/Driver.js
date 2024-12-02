@@ -6,10 +6,10 @@ const jwt = require('jsonwebtoken');
 const signJWT = promisify(jwt.sign)
 const verifyJWT = promisify(jwt.verify)
 
-const userSchema = mongoose.Schema({
+const driverSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Username is required'],
+    required: [true, 'Driver name is required'],
     trim: true,
     minlength: [3, 'Minimum length should be 3 characters'],
     maxlength: [20, 'Maximum length should be 20 characters']
@@ -35,39 +35,38 @@ const userSchema = mongoose.Schema({
     minlength: [10, 'Minimum length should be 10 characters'],
     maxlength: [15, 'Maximum length should be 15 characters'],
   },
-  profileImage: {
-    type: String,
-    default: 'profile-user.png'
-  },
+
+  // profileImage: {
+  //   type: String,
+  //   default: 'profile-driver.png'
+  // },
   role: {
     type: String,
-    enum: ['rider', 'admin'],
-    default: 'rider'
+    enum: ['driver'],
+    default: 'driver'
   },
   // location: {
-  //   type: {
-  //     type: String,
-  //     enum: ['Point'],
-  //     required: true
-  //   },
-  //   coordinates: {
-  //     type: [Number],
-  //     required: true
-  //   }
+  //   type: { type: String, default: "Point" },
+  //   coordinates: { type: [Number], required: true }
   // },
+  // drivingLicense: { type: String, required: true },
+  // carLicense: { type: String, required: true },
+  // carColor: { type: String, required: true },
+  // carLicensePlateNumber: { type: String, required: true },
+  // isAvailable: { type: Boolean, default: true },
+
   passwordChangedAt: { type: Date },
   passwordResetCode: { type: String },
   passwordResetExpiresAt: { type: Date },
   passwordResetCodeVerified: { type: Boolean }
 
-}, { timestamps: true })
+}, { timestamps: true });
 
-userSchema.index({ location: "2dsphere" }); // Geospatial index for location
-
-
+driverSchema.index({ location: "2dsphere" });
 
 
-userSchema.pre('save', async function () {
+
+driverSchema.pre('save', async function () {
   const currentDoc = this
   if (currentDoc.isModified('password')) {
     // Hash the password before saving
@@ -75,17 +74,19 @@ userSchema.pre('save', async function () {
   }
 })
 
-userSchema.methods.comparePassword = async function (plainPassword) {
+driverSchema.methods.comparePassword = async function (plainPassword) {
   return await bcrypt.compare(plainPassword, this.password)
 }
 
-userSchema.methods.generateJWT = function () {
+driverSchema.methods.generateJWT = function () {
   const currentDocument = this;
   return signJWT({ id: currentDocument._id }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRES_AT })
 }
-userSchema.statics.verifyJWT = function (token) {
+driverSchema.statics.verifyJWT = function (token) {
   return verifyJWT(token, process.env.JWT_SECRET_KEY)
 }
 
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+
+const Driver = mongoose.model('Driver', driverSchema);
+
+module.exports = Driver

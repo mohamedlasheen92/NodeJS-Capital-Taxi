@@ -4,6 +4,8 @@ const CustomError = require("../utils/customError")
 const User = require("../models/User")
 
 
+// *** ADMINS ***
+
 /**
  * @description Retrieve all users
  * @route GET /api/v1/users
@@ -85,6 +87,48 @@ const changeUserPassword = async (req, res, next) => {
 }
 
 
+// *** LOGGED USERS ***
+
+/**
+ * @description Middleware to set the ID parameter to the logged-in user's ID
+ * @route Middleware
+ * @access Private
+ */
+const getLoggedUserData = async (req, res, next) => {
+  req.params.id = req.user._id
+
+  next()
+}
+
+/**
+ * @description Update the logged-in user's password and generate a new JWT token
+ * @route PATCH /api/v1/users/updatePassword
+ * @access Private
+ */
+const updateLoggedUserPassword = async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.user._id, {
+    password: await bcrypt.hash(req.body.newPassword, Number(process.env.SALT_ROUNDS)),
+    passwordChangedAt: Date.now()
+  }, { new: true })
+
+  const token = await user.generateJWT()
+
+  res.status(200).json({ message: 'Password updated successfully', data: user, token })
+}
+
+const updateLoggedUserData = async (req, res, next) => {
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    profileImage: req.body.profileImage
+  }, { new: true })
+
+  if (!updatedUser)
+    return next(new CustomError(`No document for this id ${req.user._id}`, 404))
+
+  res.status(200).json({ message: 'User data updated successfully', data: updatedUser })
+}
 
 module.exports = {
   getUsers,
@@ -93,5 +137,7 @@ module.exports = {
   updateUser,
   deleteUser,
   changeUserPassword,
-
+  getLoggedUserData,
+  updateLoggedUserPassword,
+  updateLoggedUserData
 }

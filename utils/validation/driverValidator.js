@@ -1,20 +1,20 @@
 const { check } = require("express-validator");
-const User = require("../../models/User");
+const Driver = require("../../models/Driver");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 
 // *** ADMINS ***
-const createUserValidator = [
+const createDriverValidator = [
   check('name')
-    .notEmpty().withMessage('Username is required')
-    .isLength({ min: 3, max: 20 }).withMessage('Username must be between 3 and 20 characters'),
+    .notEmpty().withMessage('Driver name is required')
+    .isLength({ min: 3, max: 20 }).withMessage('Driver name must be between 3 and 20 characters'),
 
   check('email')
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please enter a valid email address')
     .custom(async (value) => {
       // Check if email already exists in the database
-      const user = await User.findOne({ email: value })
-      if (user)
+      const driver = await Driver.findOne({ email: value })
+      if (driver)
         throw new Error('Email already exists');
 
       return true
@@ -40,8 +40,8 @@ const createUserValidator = [
     .withMessage('Please enter a valid mobile phone number in Egyptian format')
     .custom(async (value) => {
       // Check if phone number already exists in the database
-      const user = await User.findOne({ phone: value })
-      if (user)
+      const driver = await Driver.findOne({ phone: value })
+      if (driver)
         throw new Error('Phone number already exists');
 
       return true
@@ -50,26 +50,26 @@ const createUserValidator = [
 
   check('role')
     .optional()
-    .isIn(['admin', 'rider']).withMessage("Invalid role. Please select either 'admin' or 'rider'"),
+    .isIn(['driver']).withMessage("Invalid role. Role must be driver"),
 
-  check('profileImage').optional(),
+  // check('profileImage').optional(),
 
   validatorMiddleware
 ]
 
-const updateUserValidator = [
-  check('id').isMongoId().withMessage('Invalid user ID format. Please provide a valid ID'),
+const updateDriverValidator = [
+  check('id').isMongoId().withMessage('Invalid driver ID format. Please provide a valid ID'),
   check('name')
     .optional()
-    .isLength({ min: 3, max: 20 }).withMessage('Username must be between 3 and 20 characters'),
+    .isLength({ min: 3, max: 20 }).withMessage('Drivername must be between 3 and 20 characters'),
 
   check('email')
     .optional()
     .isEmail().withMessage('Please enter a valid email address')
     .custom(async (value) => {
       // Check if email already exists in the database
-      const user = await User.findOne({ email: value })
-      if (user)
+      const driver = await Driver.findOne({ email: value })
+      if (driver)
         throw new Error('Email already exists');
 
       return true
@@ -82,38 +82,35 @@ const updateUserValidator = [
 
   check('profileImage').optional(),
 
-  check('role')
-    .optional()
-    .isIn(['admin', 'rider']).withMessage("Invalid role. Please select either 'admin' or 'rider'"),
 
   validatorMiddleware
 ]
 
-const getUserValidator = [
+const getDriverValidator = [
   check('id')
-    .isMongoId().withMessage('Invalid user ID format. Please provide a valid ID'),
+    .isMongoId().withMessage('Invalid driver ID format. Please provide a valid ID'),
 
   validatorMiddleware
 ]
 
-const deleteUserValidator = [
+const deleteDriverValidator = [
   check('id')
-    .isMongoId().withMessage('Invalid user ID format. Please provide a valid ID'),
+    .isMongoId().withMessage('Invalid driver ID format. Please provide a valid ID'),
 
   validatorMiddleware
 ]
 
-const changeUserPasswordValidator = [
-  check('id').isMongoId().withMessage('Invalid user ID format. Please provide a valid ID'),
+const changeDriverPasswordValidator = [
+  check('id').isMongoId().withMessage('Invalid driver ID format. Please provide a valid ID'),
   check('currentPassword')
     .notEmpty().withMessage('Current password is required')
     .custom(async (value, { req }) => {
-      // Check if there is a user with that ID and Current password is correct
-      const user = await User.findById(req.params.id)
-      if (!user)
+      // Check if there is a driver with that ID and Current password is correct
+      const driver = await Driver.findById(req.params.id)
+      if (!driver)
         throw new Error(`There's no document for this id ${req.params.id}`)
 
-      if (!(await user.comparePassword(value)))
+      if (!(await driver.comparePassword(value)))
         throw new Error('Current password is incorrect');
 
       return true
@@ -135,17 +132,17 @@ const changeUserPasswordValidator = [
   validatorMiddleware
 ]
 
-// *** LOGGED USERS ***
-const updateLoggedUserPasswordValidator = [
+// *** LOGGED DRIVERS ***
+const updateLoggedDriverPasswordValidator = [
   check('currentPassword')
     .notEmpty().withMessage('Current password is required')
     .custom(async (value, { req }) => {
       //Check if the current password is correct
-      const user = await User.findById(req.user._id)
-      if (!user)
-        throw new Error('No user associated with this ID. The account may have been removed')
+      const driver = await Driver.findById(req.driver._id)
+      if (!driver)
+        throw new Error('No driver associated with this ID. The account may have been removed')
 
-      if (!(await user.comparePassword(value)))
+      if (!(await driver.comparePassword(value)))
         throw new Error('Current password is incorrect');
 
       return true
@@ -167,18 +164,18 @@ const updateLoggedUserPasswordValidator = [
   validatorMiddleware
 ]
 
-const updateLoggedUserDataValidator = [
+const updateLoggedDriverDataValidator = [
   check('name')
     .optional()
-    .isLength({ min: 3, max: 20 }).withMessage('Username must be between 3 and 20 characters'),
+    .isLength({ min: 3, max: 20 }).withMessage('Drivername must be between 3 and 20 characters'),
 
   check('email')
     .optional()
     .isEmail().withMessage('Please enter a valid email address')
     .custom(async (value) => {
       // Check if email already exists in the database
-      const user = await User.findOne({ email: value })
-      if (user)
+      const driver = await Driver.findOne({ email: value })
+      if (driver)
         throw new Error('Email already exists');
 
       return true
@@ -190,8 +187,8 @@ const updateLoggedUserDataValidator = [
     .withMessage('Please enter a valid mobile phone number in Egyptian format')
     .custom(async (value) => {
       // Check if phone number already exists in the database
-      const user = await User.findOne({ phone: value })
-      if (user)
+      const driver = await Driver.findOne({ phone: value })
+      if (driver)
         throw new Error('Phone number already exists');
 
       return true
@@ -200,12 +197,13 @@ const updateLoggedUserDataValidator = [
   validatorMiddleware
 ]
 
+
 module.exports = {
-  createUserValidator,
-  updateUserValidator,
-  getUserValidator,
-  deleteUserValidator,
-  changeUserPasswordValidator,
-  updateLoggedUserPasswordValidator,
-  updateLoggedUserDataValidator
+  createDriverValidator,
+  updateDriverValidator,
+  getDriverValidator,
+  deleteDriverValidator,
+  changeDriverPasswordValidator,
+  updateLoggedDriverPasswordValidator,
+  updateLoggedDriverDataValidator
 }
