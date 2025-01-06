@@ -20,6 +20,7 @@ const errorHandler = require('./middlewares/errorHandlerMiddleware');
 // Routes
 const userRoutes = require('./routes/userRoutes')
 const driverRoutes = require('./routes/driverRoutes')
+const rideRequestRoute = require('./routes/rideRequestRoutes');
 
 const app = express();
 
@@ -35,7 +36,7 @@ if (process.env.NODE_ENV === 'development') {
 // *** ROUTES
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/drivers', driverRoutes)
-
+app.use('/api/v1/ride-request', rideRequestRoute)
 
 
 // *** UNHANDLED ROUTES

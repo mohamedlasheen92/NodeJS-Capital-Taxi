@@ -45,10 +45,12 @@ const driverSchema = new mongoose.Schema({
     enum: ['driver'],
     default: 'driver'
   },
-  // location: {
-  //   type: { type: String, default: "Point" },
-  //   coordinates: { type: [Number], required: true }
-  // },
+  location: {
+    type: { type: String, default: "Point" },
+    coordinates: {    // [longitude, latitude]
+      type: [Number],
+    }
+  },
   // drivingLicense: { type: String, required: true },
   // carLicense: { type: String, required: true },
   // carColor: { type: String, required: true },

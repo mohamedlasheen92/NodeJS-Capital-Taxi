@@ -44,17 +44,17 @@ const userSchema = mongoose.Schema({
     enum: ['rider', 'admin'],
     default: 'rider'
   },
-  // location: {
-  //   type: {
-  //     type: String,
-  //     enum: ['Point'],
-  //     required: true
-  //   },
-  //   coordinates: {
-  //     type: [Number],
-  //     required: true
-  //   }
-  // },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: "Point"
+    },
+    coordinates: {    // [longitude, latitude]
+      type: [Number],
+      required: true
+    }
+  },
   passwordChangedAt: { type: Date },
   passwordResetCode: { type: String },
   passwordResetExpiresAt: { type: Date },
