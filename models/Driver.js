@@ -55,7 +55,17 @@ const driverSchema = new mongoose.Schema({
   // carLicense: { type: String, required: true },
   // carColor: { type: String, required: true },
   // carLicensePlateNumber: { type: String, required: true },
-  // isAvailable: { type: Boolean, default: true },
+  isAvailable: { type: Boolean, default: true },
+  ratingsAverage: {
+    type: Number,
+    min: [1, 'The Minimum of product ratings average is 1.0'],
+    max: [5, 'The Maximum of product ratings average is 5.0'],
+  },
+  ratingsQuantity: {
+    type: Number,
+    default: 0
+  },
+
 
   passwordChangedAt: { type: Date },
   passwordResetCode: { type: String },

@@ -3,11 +3,12 @@ const geolib = require('geolib');
 const Driver = require("../models/Driver")
 const RideRequest = require("../models/RideRequest")
 const Trip = require("../models/Trip")
-const CustomError = require("../utils/customError")
+const CustomError = require("../utils/customError");
+const User = require('../models/User');
 
 /**
  * @description Create a new ride request and assign it to the nearest available driver
- * @route POST /ride-request
+ * @route POST /trips/ride-request
  * @access Private/Rider
  */
 const createRideRequest = async (req, res, next) => {
@@ -26,7 +27,8 @@ const createRideRequest = async (req, res, next) => {
           coordinates: [pickupLocation.coordinates[0], pickupLocation.coordinates[1]]
         }
       }
-    }
+    },
+    isAvailable: true,
   })
   if (!nearestDriver)
     return next(new CustomError('No available drivers near your pickup location.', 404))
@@ -40,8 +42,6 @@ const createRideRequest = async (req, res, next) => {
   })
 
   // Notify the driver (for now, just a response)
-
-
   // Return the ride request and driver details
   res.status(200).json({
     message: "Ride request created and driver assigned.",
@@ -91,7 +91,10 @@ const respondToRideRequest = async (req, res, next) => {
   ) / 1000  // Convert meters to kilometers
 
 
-  // If accepted, create a trip
+  // If accepted, Mark the driver as no available, create a trip
+  req.driver.isAvailable = false;
+  await req.driver.save();
+
   const trip = await Trip.create({
     pickupLocation: rideRequest.pickupLocation,
     dropoffLocation: rideRequest.dropoffLocation,
@@ -112,9 +115,53 @@ const respondToRideRequest = async (req, res, next) => {
   return res.status(200).json({ message: 'Ride request accepted.', trip })
 }
 
+/**
+ * @description Retrieve all trips and return them with their count
+ * @route GET /ride-request/trips
+ * @access Private/Admin
+ */
+const getTrips = async (req, res, next) => {
+  const trips = await Trip.find({})
+  res.status(200).json({
+    count: trips.length,
+    data: trips,
+  })
+}
+
+
+/**
+ * @description Retrieve a specific trip by ID
+ * @route GET /ride-request/trips/:id
+ * @access Private/Admin
+ */
+const getTrip = async (req, res, next) => {
+  const trip = await Trip.findById(req.params.id)
+  if (!trip)
+    return next(new CustomError(`No document for this id ${req.params.id}`, 404))
+
+  res.status(200).json({ data: trip })
+}
+
+/**
+ * @description Update a specific trip as completed
+ * @route PUT /ride-request/trips/:id
+ */
+const updateTripToComplete = async (req, res, next) => {
+  const trip = await Trip.findByIdAndUpdate(req.params.id, {
+    status: 'completed',
+  }, { new: true })
+  if (!trip)
+    return next(new CustomError(`No document for this id ${req.params.id}`, 404))
+
+  res.status(200).json({ message: 'Trip completed.', trip })
+}
+
 module.exports = {
   createRideRequest,
   respondToRideRequest,
   getRideRequests,
+  getTrips,
+  getTrip,
+  updateTripToComplete,
 
 }
